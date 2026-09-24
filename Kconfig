@@ -37,6 +37,14 @@ config MAIN_STACK_SIZE
 	int
 	default 4096 if PERSISTENT_STORAGE
 
+config APP_LED_BLINK_STACK_SIZE
+	int "Status LED blink thread stack size"
+	default 256
+	help
+	  Stack size of the status LED blink thread. 256 bytes suffices on
+	  Cortex-M; RISC-V needs more since an interrupt taken on this thread
+	  pushes a larger exception frame.
+
 config APP_CRYPTO
 	bool
 	select NET_SOCKETS_SOCKOPT_TLS

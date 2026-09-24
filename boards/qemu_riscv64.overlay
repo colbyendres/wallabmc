@@ -1,0 +1,58 @@
+/*
+ * RISC-V QEMU virt port (local, not upstream).
+ * QEMU virt has no GPIO controller, so power/status GPIOs are backed by
+ * Zephyr's emulated GPIO driver. Pin states can be inspected from the shell
+ * or tests but drive nothing physical.
+ */
+
+#include <zephyr/dt-bindings/gpio/gpio.h>
+/ {
+	/*
+	 * Zephyr v4.4.1's virt-riscv.dtsi has no virtio-mmio nodes (added
+	 * upstream after 4.4.1). QEMU virt places 8 transports at
+	 * 0x10001000 + n*0x1000 on PLIC IRQs 1..8; only the first is used,
+	 * for virtio-net (QEMU: -device virtio-net-device,bus=virtio-mmio-bus.0).
+	 */
+	virtio_mmio0: virtio_mmio@10001000 {
+		compatible = "virtio,mmio";
+		reg = <0x10001000 0x1000>;
+		interrupts = <1 1>;
+		interrupt-parent = <&plic>;
+
+		virtio_net: virtio-net {
+			compatible = "virtio,net";
+			zephyr,random-mac-address;
+		};
+	};
+
+	gpio_emul: gpio-emul {
+		compatible = "zephyr,gpio-emul";
+		rising-edge;
+		falling-edge;
+		high-level;
+		low-level;
+		gpio-controller;
+		#gpio-cells = <2>;
+		ngpios = <8>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		status_led: status_led {
+			gpios = <&gpio_emul 0 GPIO_ACTIVE_HIGH>;
+		};
+		power_gpio_1: power_gpio_1 {
+			gpios = <&gpio_emul 1 GPIO_ACTIVE_HIGH>;
+		};
+		reset_gpio_1: reset_gpio_1 {
+			gpios = <&gpio_emul 2 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	aliases {
+		status-led = &status_led;
+		power-gpio-1 = &power_gpio_1;
+		reset-gpio-1 = &reset_gpio_1;
+	};
+};
