@@ -1,0 +1,47 @@
+/*
+ * Storage for PERSISTENT_STORAGE: a 64 KiB zephyr,sim-flash backed by the
+ * top 1 MiB of QEMU RAM, carved out of Zephyr's ram0 so the heap never
+ * reaches it. Its linker section is NOLOAD and a sim-flash with a
+ * memory-region is not erased at init, so the contents survive a warm
+ * reset, and can be saved/restored across QEMU runs with the monitor's
+ * `pmemsave 0x8ff00000 0x10000 <file>` and
+ * `-device loader,file=<file>,addr=0x8ff00000,force-raw=on`.
+ * (Same pattern as zephyr/tests/drivers/flash_simulator/flash_sim_reboot.)
+ */
+/ {
+	nvs_ram: sram@8ff00000 {
+		compatible = "zephyr,memory-region", "mmio-sram";
+		reg = <0x8ff00000 0x100000>;
+		zephyr,memory-region = "NvsSim";
+	};
+
+	sim_flash_controller: sim_flash_controller {
+		compatible = "zephyr,sim-flash";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		erase-value = <0xff>;
+		memory-region = <&nvs_ram>;
+
+		flash_sim0: flash_sim@0 {
+			compatible = "soc-nv-flash";
+			reg = <0x00000000 0x10000>;
+			erase-block-size = <4096>;
+			write-block-size = <4>;
+
+			partitions {
+				compatible = "fixed-partitions";
+				#address-cells = <1>;
+				#size-cells = <1>;
+
+				storage_partition: partition@0 {
+					label = "storage";
+					reg = <0x00000000 0x10000>;
+				};
+			};
+		};
+	};
+};
+
+&ram0 {
+	reg = <0x80000000 0xff00000>;
+};
