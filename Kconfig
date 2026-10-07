@@ -354,7 +354,10 @@ config PERSISTENT_STORAGE
 	# select FLASH_SHELL if SHELL # ~4kB flash
 	# Writing internal flash that is used for XIP requires
 	# that the flash driver is relocated into RAM.
-	select CODE_DATA_RELOCATION_SRAM
+	# (Local RISC-V QEMU port: CODE_DATA_RELOCATION_SRAM depends on
+	# CPU_CORTEX_M, and the QEMU image already runs from RAM with sim-flash
+	# storage, so there is nothing to relocate.)
+	select CODE_DATA_RELOCATION_SRAM if CPU_CORTEX_M
 	# XXX: May need to enable these, or disable IRQs in the flash
 	# erase and program functions while flash is being written.
 	# select SRAM_VECTOR_TABLE
