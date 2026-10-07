@@ -6,6 +6,26 @@
  */
 
 #include <zephyr/dt-bindings/gpio/gpio.h>
+
+/*
+ * Target BMC core is IMAFDCB: add B (= Zba + Zbb + Zbs) to every hart.
+ * Zephyr derives CONFIG_RISCV_ISA_EXT_ZB{A,B,S} (and so -march) from this
+ * property and only sets them when all harts list the extension. QEMU must
+ * run with b=on (scripts/test-wallabmc.sh), or the image traps on the
+ * first bitmanip instruction.
+ */
+#define BMC_ISA_EXTENSIONS \
+	"i", "m", "a", "f", "d", "c", "zicsr", "zifencei", "zba", "zbb", "zbs"
+
+&{/cpus/cpu@0} { riscv,isa-extensions = BMC_ISA_EXTENSIONS; };
+&{/cpus/cpu@1} { riscv,isa-extensions = BMC_ISA_EXTENSIONS; };
+&{/cpus/cpu@2} { riscv,isa-extensions = BMC_ISA_EXTENSIONS; };
+&{/cpus/cpu@3} { riscv,isa-extensions = BMC_ISA_EXTENSIONS; };
+&{/cpus/cpu@4} { riscv,isa-extensions = BMC_ISA_EXTENSIONS; };
+&{/cpus/cpu@5} { riscv,isa-extensions = BMC_ISA_EXTENSIONS; };
+&{/cpus/cpu@6} { riscv,isa-extensions = BMC_ISA_EXTENSIONS; };
+&{/cpus/cpu@7} { riscv,isa-extensions = BMC_ISA_EXTENSIONS; };
+
 / {
 	/*
 	 * Zephyr v4.4.1's virt-riscv.dtsi has no virtio-mmio nodes (added
